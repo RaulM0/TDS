@@ -1,8 +1,6 @@
--- Create the database
 CREATE DATABASE IF NOT EXISTS gestion_clubes;
 USE gestion_clubes;
 
--- Table: estudiantes (Students)
 CREATE TABLE IF NOT EXISTS estudiantes (
     id_estudiante INT AUTO_INCREMENT PRIMARY KEY,
     codigo_estudiante VARCHAR(20) UNIQUE NOT NULL,
@@ -19,7 +17,6 @@ CREATE TABLE IF NOT EXISTS estudiantes (
     fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: clubes (Clubs)
 CREATE TABLE IF NOT EXISTS clubes (
     id_club INT AUTO_INCREMENT PRIMARY KEY,
     codigo_club VARCHAR(20) UNIQUE NOT NULL,
@@ -35,7 +32,6 @@ CREATE TABLE IF NOT EXISTS clubes (
     fecha_creacion_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: membresias (Memberships)
 CREATE TABLE IF NOT EXISTS membresias (
     id_membresia INT AUTO_INCREMENT PRIMARY KEY,
     id_estudiante INT NOT NULL,
@@ -49,7 +45,6 @@ CREATE TABLE IF NOT EXISTS membresias (
     UNIQUE KEY unique_membresia (id_estudiante, id_club)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: pagos (Payments)
 CREATE TABLE IF NOT EXISTS pagos (
     id_pago INT AUTO_INCREMENT PRIMARY KEY,
     id_membresia INT NOT NULL,
@@ -63,7 +58,6 @@ CREATE TABLE IF NOT EXISTS pagos (
     FOREIGN KEY (id_membresia) REFERENCES membresias(id_membresia) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: cursos (Courses)
 CREATE TABLE IF NOT EXISTS cursos (
     id_curso INT AUTO_INCREMENT PRIMARY KEY,
     codigo_curso VARCHAR(20) UNIQUE NOT NULL,
@@ -73,7 +67,6 @@ CREATE TABLE IF NOT EXISTS cursos (
     departamento VARCHAR(100)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: historial_academico (Academic History)
 CREATE TABLE IF NOT EXISTS historial_academico (
     id_historial INT AUTO_INCREMENT PRIMARY KEY,
     id_estudiante INT NOT NULL,
@@ -87,7 +80,6 @@ CREATE TABLE IF NOT EXISTS historial_academico (
     FOREIGN KEY (id_curso) REFERENCES cursos(id_curso) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: usuarios (Users)
 CREATE TABLE IF NOT EXISTS usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     id_estudiante INT,
@@ -103,7 +95,29 @@ CREATE TABLE IF NOT EXISTS usuarios (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
--- Create indexes for better performance
 CREATE INDEX idx_estudiante_nombre ON estudiantes(nombre, appat, apmat);
 CREATE INDEX idx_club_nombre ON clubes(nombre_club);
 CREATE INDEX idx_membresia_estado ON membresias(estado_membresia);
+
+
+
+insert into estudiantes (codigo_estudiante, nombre, appat, apmat, correo, telefono, fecha_nacimiento, carrera, semestre, estado_inscripcion) values
+('E001', 'Juan', 'Pérez', 'Gómez', 'a@gmail.com', '123456789', '2000-01-01', 'Ingeniería', 5, 'Inscrito');
+
+INSERT INTO usuarios (
+    id_estudiante,
+    nombre_usuario,
+    contrasena,
+    correo,
+    rol,
+    estado,
+    ultimo_acceso
+) VALUES (
+    1,
+    'raul',
+    '123', 
+    'demo@ejemplo.com',
+    'Coordinador',
+    'Activo',
+    NOW()
+);
