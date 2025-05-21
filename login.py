@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 import os
-import conn
+from conn import get_connection
 
 class LoginApp:
     def __init__(self, root, app_manager):
@@ -191,7 +191,7 @@ class LoginApp:
                 pass
 
     def iniciar_sesion(self):
-        """Maneja el proceso de inicio de sesión"""
+        """Maneja el proceso de inicio de sesión validando contra la base de datos"""
         usuario = self.entrada_usuario.get().strip()
         clave = self.entrada_clave.get().strip()
 
@@ -199,22 +199,76 @@ class LoginApp:
             messagebox.showwarning("Campos vacíos", "Por favor complete todos los campos")
             return
 
-        # Validación básica (en una app real esto sería con una base de datos)
-        if usuario == "admin" and clave == "123":
-            self.guardar_credenciales(usuario)
+        # Efecto visual de carga
+        self.boton_login.configure(text="Validando...", state="disabled")
+        self.root.update()
+
+        conn = None
+        try:
+            conn = get_connection()
+            cursor = conn.cursor(dictionary=True)
             
-            # Efecto visual de carga
-            self.boton_login.configure(text="Iniciando...", state="disabled")
-            self.root.update()
+            # Consulta para verificar credenciales
+            query = """
+                SELECT id_usuario, nombre_usuario, rol, estado 
+                FROM usuarios 
+                WHERE nombre_usuario = %s AND contrasena = %s
+            """
+            cursor.execute(query, (usuario, clave))
+            user_data = cursor.fetchone()
             
-            # Simular carga
-            self.root.after(1000, lambda: self.completar_login_exitoso(usuario))
-        else:
+            if user_data:
+                # Verificar estado del usuario
+                if user_data['estado'] != 'Activo':
+                    messagebox.showerror(
+                        "Cuenta no activa", 
+                        f"Su cuenta está marcada como {user_data['estado']}.\n"
+                        "Por favor contacte al administrador."
+                    )
+                    return
+                
+                # Actualizar último acceso
+                update_query = """
+                    UPDATE usuarios 
+                    SET ultimo_acceso = CURRENT_TIMESTAMP 
+                    WHERE id_usuario = %s
+                """
+                cursor.execute(update_query, (user_data['id_usuario'],))
+                conn.commit()
+                
+                # Guardar credenciales si el usuario lo desea
+                self.guardar_credenciales(usuario)
+                
+                # Mostrar mensaje de bienvenida
+                messagebox.showinfo(
+                    "Bienvenido", 
+                    f"¡Bienvenido, {user_data['nombre_usuario']}!\n"
+                    f"Rol: {user_data['rol']}\n\n"
+                    "Acceso concedido al sistema."
+                )
+                
+                # Navegar al menú principal con los datos del usuario
+                self.app.show_menu(user_data['nombre_usuario'])
+
+            else:
+                messagebox.showerror(
+                    "Error de autenticación", 
+                    "Usuario o contraseña incorrectos"
+                )
+                self.entrada_clave.delete(0, "end")
+                
+        except Exception as e:
             messagebox.showerror(
-                "Error de autenticación", 
-                "Usuario o contraseña incorrectos\n\nIntente con:\nUsuario: admin\nContraseña: 123"
+                "Error de conexión", 
+                f"No se pudo verificar las credenciales:\n{str(e)}"
             )
-            self.entrada_clave.delete(0, "end")
+        finally:
+            # Restaurar estado del botón
+            if self.boton_login.winfo_exists():
+                self.boton_login.configure(text="Iniciar Sesión", state="normal")
+
+            if conn:
+                conn.close()
 
     def completar_login_exitoso(self, usuario):
         """Completa el proceso de login exitoso"""
