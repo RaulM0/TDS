@@ -2,6 +2,7 @@ import customtkinter as ctk
 from tkinter import messagebox
 import os
 from conn import get_connection
+import json
 
 class LoginApp:
     def __init__(self, root, app_manager):
@@ -168,27 +169,32 @@ class LoginApp:
         # Cargar credenciales guardadas si existen
         self.cargar_credenciales()
 
+
+    def guardar_credenciales(self, usuario, role):
+        """Guarda credenciales; siempre guarda role, usuario solo si recordar es True"""
+        datos = {"role": role}
+
+        if self.recordar.get():
+            datos["usuario"] = usuario
+
+        with open("credenciales.json", "w") as f:
+            json.dump(datos, f)
+
+
     def cargar_credenciales(self):
-        """Carga las credenciales recordadas si existen"""
         try:
-            with open("credenciales.txt", "r") as f:
-                usuario = f.readline().strip()
-                if usuario:
-                    self.entrada_usuario.insert(0, usuario)
-                    self.recordar.select()
+            with open("credenciales.json", "r") as f:
+                datos = json.load(f)
+            usuario = datos.get("usuario", "")
+            role = datos.get("role", "")
+            if usuario:
+                self.entrada_usuario.insert(0, usuario)
+                self.recordar.select()
+            # Usa el role como necesites
         except FileNotFoundError:
+            # Si no hay archivo, el role estará vacío, maneja eso según la lógica de tu app
             pass
 
-    def guardar_credenciales(self, usuario):
-        """Guarda las credenciales si el usuario lo desea"""
-        if self.recordar.get():
-            with open("credenciales.txt", "w") as f:
-                f.write(usuario)
-        else:
-            try:
-                os.remove("credenciales.txt")
-            except:
-                pass
 
     def iniciar_sesion(self):
         """Maneja el proceso de inicio de sesión validando contra la base de datos"""
@@ -237,7 +243,7 @@ class LoginApp:
                 conn.commit()
                 
                 # Guardar credenciales si el usuario lo desea
-                self.guardar_credenciales(usuario)
+                self.guardar_credenciales(usuario,role=user_data['rol'])
                 
                 # Mostrar mensaje de bienvenida
                 messagebox.showinfo(
@@ -249,6 +255,8 @@ class LoginApp:
                 
                 # Navegar al menú principal con los datos del usuario
                 self.app.show_menu(user_data['nombre_usuario'])
+
+
 
             else:
                 messagebox.showerror(

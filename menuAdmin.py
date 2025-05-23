@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from clubs import ClubManagementWindow
+import json
 
 class Menu:
     def __init__(self, root, app_manager, usuario):
@@ -62,13 +63,17 @@ class Menu:
         
         button_config = [
             {"text": "GESTIÓN DE CLUBS", "command": self.open_clubs_window},
-            {"text": "GESTIÓN DE MIEMBROS", "command": self.open_members_window},
             {"text": "GESTIÓN DE MEMBRESÍAS", "command": self.open_subscriptions_window},
-            {"text": "GESTON DE PAGOS", "command": self.open_pagos_window},
             {"text": "GESTION DE USUARIOS", "command": self.open_usuarios_window},
             {"text": "HISTORIAL ACADEMICO ", "command": self.open_historial_window},
             {"text": "CURSOS", "command": self.open_cursos_window}
         ]
+        
+        role = self.cargar_role()
+        if role == "Coordinador":
+            button_config.append({"text": "GESTIÓN DE MIEMBROS", "command": self.open_members_window})
+            button_config.append({"text": "GESTION DE PAGOS", "command": self.open_pagos_window})
+
         
         for config in button_config:
             btn = ctk.CTkButton(
@@ -92,6 +97,14 @@ class Menu:
             self.app._clear_window()
         self.app.show_club_management()
         self.app.root.update_idletasks()
+# Metodo para cargar el role desde un archivo JSON
+    def cargar_role(self):
+        try:
+            with open("credenciales.json", "r") as f:
+                datos = json.load(f)
+            return datos.get("role", None)  # Devuelve el role o None si no existe
+        except FileNotFoundError:
+            return None  # No hay archivo, no hay role
 
 # Método para abrir la ventana de gestión de usuarios
     def open_usuarios_window(self):

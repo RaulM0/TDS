@@ -122,7 +122,6 @@ class UserManagementWindow:
         )
         self.form_title.pack(pady=(0, 20))
         
-        # Campos del formulario según la estructura de la tabla usuarios
         fields = [
             {"label": "ID Usuario", "name": "id", "editable": False},
             {"label": "Nombre Usuario*", "name": "username"},
@@ -152,7 +151,6 @@ class UserManagementWindow:
                 widget = ctk.CTkEntry(frame, show="•")
                 widget.pack(side="right", fill="x", expand=True)
                 
-                # Botón para mostrar/ocultar contraseña
                 eye_btn = ctk.CTkButton(
                     frame,
                     text="👁",
@@ -225,7 +223,7 @@ class UserManagementWindow:
             frame = ctk.CTkFrame(self.list_scroll, height=50)
             frame.pack(fill="x", pady=2, padx=5)
 
-            frame.grid_columnconfigure(0, weight=1)  # Permite que el texto se expanda
+            frame.grid_columnconfigure(0, weight=1)  
 
             text = (f"{user['nombre_usuario']} - {user['correo']} "
                     f"({user['rol']}) - {user['estado']}")
@@ -310,12 +308,10 @@ class UserManagementWindow:
                 field_name = field.replace("_", " ").title()
                 errors.append(f"El campo {field_name} es obligatorio")
         
-        # Validar formato de email
         email = self.form_widgets["email"].get().strip()
         if email and not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             errors.append("El correo electrónico no es válido")
         
-        # Validar que student_id sea numérico si existe
         student_id = self.form_widgets["student_id"].get().strip()
         if student_id and not student_id.isdigit():
             errors.append("El ID de estudiante debe ser un número")
